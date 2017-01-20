@@ -25,22 +25,33 @@ public class PuzzleHunt extends Database {
         return log;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void testSingleDirectConnection() throws Exception {
         PuzzleHunt puzzleHunt = new PuzzleHunt();
         StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("get_user_count", resultSet -> (resultSet.getInt("count(*)")));
         List<Integer> integers = puzzleHunt.executeQuery(storedProcedureCall);
         System.out.println(integers);
 
+    }
+
+    public static void testPooledConnection() throws Exception {
         PoolProperties poolProperties = new PoolProperties();
         poolProperties.setTestOnBorrow(true);
         poolProperties.setTestOnReturn(true);
         PuzzleHunt puzzleHuntPooled = new PuzzleHunt(poolProperties);
-
-        integers = puzzleHuntPooled.executeQuery(storedProcedureCall);
+        StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("get_user_count", resultSet -> (resultSet.getInt("count(*)")));
+        List<Integer> integers = puzzleHuntPooled.executeQuery(storedProcedureCall);
         System.out.println(integers);
+    }
 
-        List<String> v = puzzleHuntPooled.executeQuery(connection -> connection.prepareStatement("SELECT @@VERSION as v"), resultSet -> resultSet.getString("v"));
+    public static void testRawQuery() throws Exception {
+        PuzzleHunt puzzleHunt = new PuzzleHunt();
+        List<String> v = puzzleHunt.executeQuery(connection -> connection.prepareStatement("SELECT @@VERSION as v"), resultSet -> resultSet.getString("v"));
         System.out.println(v);
+    }
 
+    public static void main(String[] args) throws Exception {
+        testSingleDirectConnection();
+        testPooledConnection();
+        testRawQuery();
     }
 }
