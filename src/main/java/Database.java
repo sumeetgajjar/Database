@@ -133,6 +133,29 @@ public abstract class Database {
         return rows;
     }
 
+    protected <T> int executeUpdate(StoredProcedureCall<T> storedProcedureCall) throws Exception {
+        long startTime = System.currentTimeMillis();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        int affectedRows = -1;
+
+        String storedProcedureName = storedProcedureCall.getStoredProcedureName();
+        try {
+            connection = getConnection();
+            preparedStatement = getPreparedStatement(connection, storedProcedureName, storedProcedureCall.getParameters());
+            affectedRows = preparedStatement.executeUpdate();
+
+        } catch (Exception e) {
+            log.error(storedProcedureName + "_FAILURE", e);
+            throw e;
+        } finally {
+            closeDatabaseConnection(null, preparedStatement, connection);
+            long timeTaken = System.currentTimeMillis() - startTime;
+            log.info("SP_TIME|" + storedProcedureName + "|" + timeTaken);
+        }
+        return affectedRows;
+    }
+
     protected void closeDatabaseConnection(ResultSet resultSet, PreparedStatement statement, Connection connection) {
         if (resultSet != null) try {
             resultSet.close();
