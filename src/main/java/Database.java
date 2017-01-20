@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -114,11 +113,11 @@ public abstract class Database {
             preparedStatement = getPreparedStatement(connection, storedProcedureName, storedProcedureCall.getParameters());
             resultSet = preparedStatement.executeQuery();
 
-            Function<ResultSet, T> rowMapper = storedProcedureCall.getRowMapper();
+            RowMapper<T> rowMapper = storedProcedureCall.getRowMapper();
             rows = new LinkedList<>();
 
             while (resultSet.next()) {
-                T row = rowMapper.apply(resultSet);
+                T row = rowMapper.map(resultSet);
                 rows.add(row);
             }
 
