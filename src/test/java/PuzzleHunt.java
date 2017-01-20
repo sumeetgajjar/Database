@@ -38,5 +38,9 @@ public class PuzzleHunt extends Database {
 
         integers = puzzleHuntPooled.executeQuery(storedProcedureCall);
         System.out.println(integers);
+
+        List<String> v = puzzleHuntPooled.executeQuery(connection -> connection.prepareStatement("SELECT @@VERSION as v"), resultSet -> resultSet.getString("v"));
+        System.out.println(v);
+
     }
 }

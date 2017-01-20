@@ -155,6 +155,36 @@ public abstract class Database {
         return affectedRows;
     }
 
+    protected <T> List<T> executeQuery(PSMaker psMaker, RowMapper<T> rowMapper) throws Exception {
+        long startTime = System.currentTimeMillis();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<T> rows = null;
+
+        try {
+            connection = getConnection();
+            preparedStatement = psMaker.getPreparedStatement(connection);
+            resultSet = preparedStatement.executeQuery();
+
+            rows = new LinkedList<>();
+
+            while (resultSet.next()) {
+                T row = rowMapper.map(resultSet);
+                rows.add(row);
+            }
+
+        } catch (Exception e) {
+            log.error("RAW_QUERY_FAILURE", e);
+            throw e;
+        } finally {
+            closeDatabaseConnection(resultSet, preparedStatement, connection);
+            long timeTaken = System.currentTimeMillis() - startTime;
+            log.info("RAW_QUERY|" + timeTaken);
+        }
+        return rows;
+    }
+
     protected void closeDatabaseConnection(ResultSet resultSet, PreparedStatement statement, Connection connection) {
         if (resultSet != null) try {
             resultSet.close();
