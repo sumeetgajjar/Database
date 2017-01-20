@@ -50,7 +50,7 @@ public abstract class Database {
 
     protected abstract Logger getLogger();
 
-    protected void instantiatePool(PoolProperties poolProperties) {
+    private void instantiatePool(PoolProperties poolProperties) {
         DataSource dataSource = dataSourceMap.getOrDefault(databaseName, null);
         if (dataSource == null) {
             synchronized (Database.class) {
@@ -65,6 +65,11 @@ public abstract class Database {
         }
     }
 
+    private Connection getSingleDirectConnection() throws ClassNotFoundException, SQLException {
+        Class.forName(driver);
+        return DriverManager.getConnection(url, user, password);
+    }
+
     protected Connection getConnection() throws Exception {
         long startTime = System.currentTimeMillis();
         Connection connection;
@@ -76,11 +81,6 @@ public abstract class Database {
         long timeTaken = System.currentTimeMillis() - startTime;
         log.info("DB_CONNECT_TIME|" + databaseName, timeTaken);
         return connection;
-    }
-
-    private Connection getSingleDirectConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(driver);
-        return DriverManager.getConnection(url, user, password);
     }
 
     protected String getProcedureCallString(String storedProcedureName, List<Parameter> parameters) {
