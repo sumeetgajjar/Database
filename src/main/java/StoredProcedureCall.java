@@ -1,4 +1,3 @@
-import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +10,10 @@ public class StoredProcedureCall<T> {
     private final String storedProcedureName;
     private final RowMapper<T> rowMapper;
     private List<Parameter> parameters;
+
+    public StoredProcedureCall(String storedProcedureName) {
+        this(storedProcedureName, null);
+    }
 
     public StoredProcedureCall(String storedProcedureName, RowMapper<T> rowMapper) {
         this.storedProcedureName = storedProcedureName;

@@ -132,7 +132,7 @@ public abstract class Database {
         return rows;
     }
 
-    protected <T> int executeUpdate(StoredProcedureCall<T> storedProcedureCall) throws Exception {
+    protected int executeUpdate(StoredProcedureCall<Integer> storedProcedureCall) throws Exception {
         long startTime = System.currentTimeMillis();
         Connection connection = null;
         PreparedStatement preparedStatement = null;

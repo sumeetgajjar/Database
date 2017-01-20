@@ -2,6 +2,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
+import java.sql.Types;
 import java.util.List;
 
 /**
@@ -49,9 +50,18 @@ public class PuzzleHunt extends Database {
         System.out.println(v);
     }
 
+    public static void testExecuteUpdate() throws Exception {
+        PuzzleHunt puzzleHunt = new PuzzleHunt();
+        StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("insert_user");
+        storedProcedureCall.addParameter("name", "test_user", Types.VARCHAR);
+        int affectedRows = puzzleHunt.executeUpdate(storedProcedureCall);
+        System.out.println(affectedRows);
+    }
+
     public static void main(String[] args) throws Exception {
         testSingleDirectConnection();
         testPooledConnection();
         testRawQuery();
+        testExecuteUpdate();
     }
 }
