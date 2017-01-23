@@ -58,10 +58,14 @@ public class PuzzleHunt extends Database {
         System.out.println(affectedRows);
     }
 
-    public static void main(String[] args) throws Exception {
-        testSingleDirectConnection();
-        testPooledConnection();
-        testRawQuery();
-        testExecuteUpdate();
+    public static void main(String[] args) {
+        try {
+            testSingleDirectConnection();
+            testPooledConnection();
+            testRawQuery();
+            testExecuteUpdate();
+        } catch (Exception e) {
+            log.error("EXCEPTION_CAUGHT");
+        }
     }
 }
