@@ -53,9 +53,7 @@ public class PuzzleHunt extends Database {
 
     public static void main(String[] args) {
         try {
-            Database.setLoggingLevel(Level.ALL);
             testSingleDirectConnection();
-            Database.setLoggingLevel(Level.OFF);
             testPooledConnection();
             testRawQuery();
 //            testExecuteUpdate();
