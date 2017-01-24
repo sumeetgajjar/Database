@@ -2,6 +2,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * Created by sumeet
@@ -52,10 +53,12 @@ public class PuzzleHunt extends Database {
 
     public static void main(String[] args) {
         try {
+            Database.setLoggingLevel(Level.ALL);
             testSingleDirectConnection();
+            Database.setLoggingLevel(Level.OFF);
             testPooledConnection();
             testRawQuery();
-            testExecuteUpdate();
+//            testExecuteUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
