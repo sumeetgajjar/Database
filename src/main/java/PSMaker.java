@@ -7,5 +7,5 @@ import java.sql.PreparedStatement;
  */
 @FunctionalInterface
 public interface PSMaker {
-    PreparedStatement getPreparedStatement(Connection connection )throws Exception;
+    PreparedStatement getPreparedStatement(Connection connection) throws Exception;
 }
