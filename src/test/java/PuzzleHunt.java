@@ -1,9 +1,8 @@
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by sumeet
@@ -12,13 +11,13 @@ import java.util.List;
 public class PuzzleHunt extends Database {
 
     private static final PoolProperties poolProperties = new PoolProperties() {{
-        poolProperties.setTestOnBorrow(true);
-        poolProperties.setTestOnReturn(true);
+        setTestOnBorrow(true);
+        setTestOnReturn(true);
 
     }};
     private static final DatabaseConfig DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt");
     private static final DatabaseConfig POOLED_DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt", poolProperties);
-    private static final Logger log = LogManager.getLogger(PuzzleHunt.class);
+    private static final Logger log = Logger.getLogger(PuzzleHunt.class.getName());
 
     public PuzzleHunt(DatabaseConfig databaseConfig) {
         super(databaseConfig);
@@ -65,7 +64,7 @@ public class PuzzleHunt extends Database {
             testRawQuery();
             testExecuteUpdate();
         } catch (Exception e) {
-            log.error("EXCEPTION_CAUGHT");
+            e.printStackTrace();
         }
     }
 }

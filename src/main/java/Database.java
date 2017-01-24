@@ -1,4 +1,3 @@
-import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
@@ -7,6 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +64,7 @@ public abstract class Database {
             connection = getSingleDirectConnection();
         }
         long timeTaken = System.currentTimeMillis() - startTime;
-        log.info("DB_CONNECT_TIME|" + databaseConfig.databaseName, timeTaken);
+        log.info(String.format("DB_CONNECT_TIME|%s|%d", databaseConfig.databaseName, timeTaken));
         return connection;
     }
 
@@ -106,12 +107,12 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            log.error(storedProcedureName + "_FAILURE");
+            log.log(Level.SEVERE, storedProcedureName + "_FAILURE");
             throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info("SP_TIME|" + storedProcedureName + "|" + timeTaken);
+            log.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
         }
         return rows;
     }
@@ -129,12 +130,12 @@ public abstract class Database {
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
-            log.error(storedProcedureName + "_FAILURE");
+            log.log(Level.SEVERE, storedProcedureName + "_FAILURE");
             throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info("SP_TIME|" + storedProcedureName + "|" + timeTaken);
+            log.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
         }
         return affectedRows;
     }
@@ -159,12 +160,12 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            log.error("RAW_QUERY_FAILURE");
+            log.log(Level.SEVERE, "RAW_QUERY_FAILURE");
             throw new DatabaseException(databaseConfig.databaseName, "RAW_QUERY", e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info("RAW_QUERY|" + timeTaken);
+            log.info(String.format("RAW_QUERY|%d", timeTaken));
         }
         return rows;
     }
@@ -173,17 +174,17 @@ public abstract class Database {
         if (resultSet != null) try {
             resultSet.close();
         } catch (Exception e) {
-            log.error("ERROR_IN_CLOSING_RESULT_SET", e);
+            log.log(Level.SEVERE, "ERROR_IN_CLOSING_RESULT_SET", e);
         }
         if (statement != null) try {
             statement.close();
         } catch (Exception e) {
-            log.error("ERROR_IN_CLOSING_STATEMENT", e);
+            log.log(Level.SEVERE, "ERROR_IN_CLOSING_STATEMENT", e);
         }
         if (connection != null) try {
             connection.close();
         } catch (Exception e) {
-            log.error("ERROR_IN_CLOSING_CONNECTION", e);
+            log.log(Level.SEVERE, "ERROR_IN_CLOSING_CONNECTION", e);
         }
     }
 }
