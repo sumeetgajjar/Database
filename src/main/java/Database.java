@@ -14,72 +14,56 @@ import java.util.stream.Collectors;
  * on 20/1/17.
  */
 public abstract class Database {
-    private final String databaseName;
-    private final String driver;
-    private final String url;
-    private final String user;
-    private final String password;
+    private final DatabaseConfig databaseConfig;
 
-    private final boolean usePool;
     private final static Map<String, DataSource> dataSourceMap = new HashMap<>();
     private final Logger log;
 
-    public Database(String databaseName, PoolProperties poolProperties) {
+    public Database(DatabaseConfig databaseConfig) {
         this.log = getLogger();
-        this.databaseName = databaseName;
-        this.driver = SysProperties.getProperty(databaseName + "_DRIVER");
-        this.url = SysProperties.getProperty(databaseName + "_URL");
-        this.user = SysProperties.getProperty(databaseName + "_USERNAME");
-        this.password = SysProperties.getProperty(databaseName + "_PASSWORD");
+        this.databaseConfig = databaseConfig;
 
-        if (Util.isSet(poolProperties)) {
-            usePool = true;
-            poolProperties.setUrl(url);
-            poolProperties.setDriverClassName(driver);
-            poolProperties.setUsername(user);
-            poolProperties.setPassword(password);
-            instantiatePool(poolProperties);
-        } else {
-            usePool = false;
+        if (databaseConfig.usePool) {
+            databaseConfig.poolProperties.setUrl(databaseConfig.url);
+            databaseConfig.poolProperties.setDriverClassName(databaseConfig.driver);
+            databaseConfig.poolProperties.setUsername(databaseConfig.user);
+            databaseConfig.poolProperties.setPassword(databaseConfig.password);
+            instantiatePool(databaseConfig.poolProperties);
         }
-    }
-
-    public Database(String databaseName) {
-        this(databaseName, null);
     }
 
     protected abstract Logger getLogger();
 
     private void instantiatePool(PoolProperties poolProperties) {
-        DataSource dataSource = dataSourceMap.getOrDefault(databaseName, null);
+        DataSource dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
         if (dataSource == null) {
             synchronized (Database.class) {
-                dataSource = dataSourceMap.getOrDefault(databaseName, null);
+                dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
                 if (dataSource == null) {
                     log.info("INITIALIZING_DATASOURCE");
                     dataSource = new DataSource(poolProperties);
                     log.info("DATASOURCE_INITIALIZED");
-                    dataSourceMap.put(databaseName, dataSource);
+                    dataSourceMap.put(databaseConfig.databaseName, dataSource);
                 }
             }
         }
     }
 
     private Connection getSingleDirectConnection() throws ClassNotFoundException, SQLException {
-        Class.forName(driver);
-        return DriverManager.getConnection(url, user, password);
+        Class.forName(databaseConfig.driver);
+        return DriverManager.getConnection(databaseConfig.url, databaseConfig.user, databaseConfig.password);
     }
 
     protected Connection getConnection() throws Exception {
         long startTime = System.currentTimeMillis();
         Connection connection;
-        if (usePool) {
-            connection = dataSourceMap.get(databaseName).getConnection();
+        if (databaseConfig.usePool) {
+            connection = dataSourceMap.get(databaseConfig.databaseName).getConnection();
         } else {
             connection = getSingleDirectConnection();
         }
         long timeTaken = System.currentTimeMillis() - startTime;
-        log.info("DB_CONNECT_TIME|" + databaseName, timeTaken);
+        log.info("DB_CONNECT_TIME|" + databaseConfig.databaseName, timeTaken);
         return connection;
     }
 
@@ -123,7 +107,7 @@ public abstract class Database {
 
         } catch (Exception e) {
             log.error(storedProcedureName + "_FAILURE");
-            throw new DatabaseException(databaseName, storedProcedureName, e);
+            throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
@@ -146,7 +130,7 @@ public abstract class Database {
 
         } catch (Exception e) {
             log.error(storedProcedureName + "_FAILURE");
-            throw new DatabaseException(databaseName, storedProcedureName, e);
+            throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
@@ -176,7 +160,7 @@ public abstract class Database {
 
         } catch (Exception e) {
             log.error("RAW_QUERY_FAILURE");
-            throw new DatabaseException(databaseName, "RAW_QUERY", e);
+            throw new DatabaseException(databaseConfig.databaseName, "RAW_QUERY", e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
