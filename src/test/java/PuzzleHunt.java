@@ -15,8 +15,8 @@ public class PuzzleHunt extends Database {
         setTestOnReturn(true);
 
     }};
-    private static final DatabaseConfig DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt");
-    private static final DatabaseConfig POOLED_DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt", poolProperties);
+    private static final DatabaseConfig DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "puzzle_hunt", "Puzzle_Hunt", "com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/puzzle_hunt");
+    private static final DatabaseConfig POOLED_DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "puzzle_hunt", "Puzzle_Hunt", "com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/puzzle_hunt", poolProperties);
     private static final Logger log = Logger.getLogger(PuzzleHunt.class.getName());
 
     public PuzzleHunt(DatabaseConfig databaseConfig) {

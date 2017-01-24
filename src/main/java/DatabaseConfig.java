@@ -13,7 +13,7 @@ public class DatabaseConfig {
     public final boolean usePool;
     public final PoolProperties poolProperties;
 
-    public DatabaseConfig(String databaseName, String driver, String url, String user, String password, PoolProperties poolProperties) {
+    public DatabaseConfig(String databaseName, String user, String password, String driver, String url, PoolProperties poolProperties) {
         this.databaseName = databaseName;
         this.driver = driver;
         this.url = url;
@@ -23,7 +23,7 @@ public class DatabaseConfig {
         this.usePool = Util.isSet(poolProperties);
     }
 
-    public DatabaseConfig(String databaseName, String driver, String url, String user, String password) {
-        this(databaseName, driver, url, user, password, null);
+    public DatabaseConfig(String databaseName, String user, String password, String driver, String url) {
+        this(databaseName, user, password, driver, url, null);
     }
 }
