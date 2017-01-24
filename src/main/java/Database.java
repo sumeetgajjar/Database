@@ -184,5 +184,9 @@ public abstract class Database {
             log.log(Level.SEVERE, "ERROR_IN_CLOSING_CONNECTION", e);
         }
     }
+
+    public static void setLoggingLevel(Level level) {
+        log.setLevel(level);
+    }
 }
 
