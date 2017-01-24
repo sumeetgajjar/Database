@@ -11,14 +11,17 @@ import java.util.List;
  */
 public class PuzzleHunt extends Database {
 
+    private static final PoolProperties poolProperties = new PoolProperties() {{
+        poolProperties.setTestOnBorrow(true);
+        poolProperties.setTestOnReturn(true);
+
+    }};
+    private static final DatabaseConfig DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt");
+    private static final DatabaseConfig POOLED_DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "com.mysql.jdbc.Driver", "puzzle_hunt", "Puzzle_Hunt", "jdbc:mysql://localhost:3306/puzzle_hunt", poolProperties);
     private static final Logger log = LogManager.getLogger(PuzzleHunt.class);
 
-    public PuzzleHunt() {
-        super("PUZZLE_HUNT");
-    }
-
-    public PuzzleHunt(PoolProperties poolProperties) {
-        super("PUZZLE_HUNT", poolProperties);
+    public PuzzleHunt(DatabaseConfig databaseConfig) {
+        super(databaseConfig);
     }
 
     @Override
@@ -27,7 +30,7 @@ public class PuzzleHunt extends Database {
     }
 
     public static void testSingleDirectConnection() throws Exception {
-        PuzzleHunt puzzleHunt = new PuzzleHunt();
+        PuzzleHunt puzzleHunt = new PuzzleHunt(DATABASE_CONFIG);
         StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("get_user_count", resultSet -> (resultSet.getInt("count(*)")));
         List<Integer> integers = puzzleHunt.executeQuery(storedProcedureCall);
         System.out.println(integers);
@@ -35,23 +38,20 @@ public class PuzzleHunt extends Database {
     }
 
     public static void testPooledConnection() throws Exception {
-        PoolProperties poolProperties = new PoolProperties();
-        poolProperties.setTestOnBorrow(true);
-        poolProperties.setTestOnReturn(true);
-        PuzzleHunt puzzleHuntPooled = new PuzzleHunt(poolProperties);
+        PuzzleHunt puzzleHuntPooled = new PuzzleHunt(POOLED_DATABASE_CONFIG);
         StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("get_user_count", resultSet -> (resultSet.getInt("count(*)")));
         List<Integer> integers = puzzleHuntPooled.executeQuery(storedProcedureCall);
         System.out.println(integers);
     }
 
     public static void testRawQuery() throws Exception {
-        PuzzleHunt puzzleHunt = new PuzzleHunt();
+        PuzzleHunt puzzleHunt = new PuzzleHunt(DATABASE_CONFIG);
         List<String> v = puzzleHunt.executeQuery(connection -> connection.prepareStatement("SELECT @@VERSION as v"), resultSet -> resultSet.getString("v"));
         System.out.println(v);
     }
 
     public static void testExecuteUpdate() throws Exception {
-        PuzzleHunt puzzleHunt = new PuzzleHunt();
+        PuzzleHunt puzzleHunt = new PuzzleHunt(DATABASE_CONFIG);
         StoredProcedureCall<Integer> storedProcedureCall = new StoredProcedureCall<>("insert_user");
         storedProcedureCall.addParameter("name", "test_user", Types.VARCHAR);
         int affectedRows = puzzleHunt.executeUpdate(storedProcedureCall);
