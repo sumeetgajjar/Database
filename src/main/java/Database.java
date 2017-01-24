@@ -18,10 +18,9 @@ public abstract class Database {
     private final DatabaseConfig databaseConfig;
 
     private final static Map<String, DataSource> dataSourceMap = new HashMap<>();
-    private final Logger log;
+    private final static Logger log = Logger.getLogger(Database.class.getName());
 
     public Database(DatabaseConfig databaseConfig) {
-        this.log = getLogger();
         this.databaseConfig = databaseConfig;
 
         if (databaseConfig.usePool) {
@@ -32,8 +31,6 @@ public abstract class Database {
             instantiatePool(databaseConfig.poolProperties);
         }
     }
-
-    protected abstract Logger getLogger();
 
     private void instantiatePool(PoolProperties poolProperties) {
         DataSource dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);

@@ -2,7 +2,6 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
 
 import java.sql.Types;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by sumeet
@@ -17,15 +16,9 @@ public class PuzzleHunt extends Database {
     }};
     private static final DatabaseConfig DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "puzzle_hunt", "Puzzle_Hunt", "com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/puzzle_hunt");
     private static final DatabaseConfig POOLED_DATABASE_CONFIG = new DatabaseConfig("PUZZLE_HUNT", "puzzle_hunt", "Puzzle_Hunt", "com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/puzzle_hunt", poolProperties);
-    private static final Logger log = Logger.getLogger(PuzzleHunt.class.getName());
 
     public PuzzleHunt(DatabaseConfig databaseConfig) {
         super(databaseConfig);
-    }
-
-    @Override
-    protected Logger getLogger() {
-        return log;
     }
 
     public static void testSingleDirectConnection() throws Exception {
