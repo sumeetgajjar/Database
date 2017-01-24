@@ -122,8 +122,8 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            log.error(storedProcedureName + "_FAILURE", e);
-            throw e;
+            log.error(storedProcedureName + "_FAILURE");
+            throw new DatabaseException(databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
@@ -145,8 +145,8 @@ public abstract class Database {
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
-            log.error(storedProcedureName + "_FAILURE", e);
-            throw e;
+            log.error(storedProcedureName + "_FAILURE");
+            throw new DatabaseException(databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
@@ -175,8 +175,8 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            log.error("RAW_QUERY_FAILURE", e);
-            throw e;
+            log.error("RAW_QUERY_FAILURE");
+            throw new DatabaseException(databaseName, "RAW_QUERY", e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
