@@ -38,9 +38,9 @@ public abstract class Database {
             synchronized (Database.class) {
                 dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
                 if (dataSource == null) {
-                    log.info("INITIALIZING_DATASOURCE");
+                    log.log(Level.INFO, "INITIALIZING_DATASOURCE");
                     dataSource = new DataSource(poolProperties);
-                    log.info("DATASOURCE_INITIALIZED");
+                    log.log(Level.INFO, "DATASOURCE_INITIALIZED");
                     dataSourceMap.put(databaseConfig.databaseName, dataSource);
                 }
             }
@@ -61,7 +61,7 @@ public abstract class Database {
             connection = getSingleDirectConnection();
         }
         long timeTaken = System.currentTimeMillis() - startTime;
-        log.info(String.format("DB_CONNECT_TIME|%s|%d", databaseConfig.databaseName, timeTaken));
+        log.log(Level.INFO, String.format("DB_CONNECT_TIME|%s|%d", databaseConfig.databaseName, timeTaken));
         return connection;
     }
 
@@ -109,7 +109,7 @@ public abstract class Database {
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
+            log.log(Level.INFO, String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
         }
         return rows;
     }
@@ -132,7 +132,7 @@ public abstract class Database {
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
+            log.log(Level.INFO, String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
         }
         return affectedRows;
     }
@@ -162,7 +162,7 @@ public abstract class Database {
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            log.info(String.format("RAW_QUERY|%d", timeTaken));
+            log.log(Level.INFO, String.format("RAW_QUERY|%d", timeTaken));
         }
         return rows;
     }
