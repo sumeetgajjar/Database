@@ -38,9 +38,9 @@ public abstract class Database {
             synchronized (Database.class) {
                 dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
                 if (dataSource == null) {
-                    LOG.info("INITIALIZING_DATASOURCE");
+                    LOG.info(String.format("INITIALIZING_DATASOURCE|%s", databaseConfig.databaseName));
                     dataSource = new DataSource(poolProperties);
-                    LOG.info("DATASOURCE_INITIALIZED");
+                    LOG.info(String.format("DATASOURCE_INITIALIZED|%s", databaseConfig.databaseName));
                     dataSourceMap.put(databaseConfig.databaseName, dataSource);
                 }
             }
