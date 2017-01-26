@@ -1,7 +1,7 @@
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public abstract class Database {
     private final DatabaseConfig databaseConfig;
 
     private final static Map<String, DataSource> dataSourceMap = new HashMap<>();
-    private final static Log LOG = LogFactory.getLog(Database.class.getName());
+    private final static Logger LOGGER = LoggerFactory.getLogger(Database.class);
 
     public Database(DatabaseConfig databaseConfig) {
         this.databaseConfig = databaseConfig;
@@ -38,9 +38,9 @@ public abstract class Database {
             synchronized (Database.class) {
                 dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
                 if (dataSource == null) {
-                    LOG.info(String.format("INITIALIZING_DATASOURCE|%s", databaseConfig.databaseName));
+                    LOGGER.info("INITIALIZING_DATASOURCE|{}", databaseConfig.databaseName);
                     dataSource = new DataSource(poolProperties);
-                    LOG.info(String.format("DATASOURCE_INITIALIZED|%s", databaseConfig.databaseName));
+                    LOGGER.info("DATASOURCE_INITIALIZED|{}", databaseConfig.databaseName);
                     dataSourceMap.put(databaseConfig.databaseName, dataSource);
                 }
             }
@@ -61,7 +61,7 @@ public abstract class Database {
             connection = getSingleDirectConnection();
         }
         long timeTaken = System.currentTimeMillis() - startTime;
-        LOG.info(String.format("DB_CONNECT_TIME|%s|%d", databaseConfig.databaseName, timeTaken));
+        LOGGER.info("DB_CONNECT_TIME|{}|{}", databaseConfig.databaseName, timeTaken);
         return connection;
     }
 
@@ -82,7 +82,7 @@ public abstract class Database {
         return preparedStatement;
     }
 
-    protected <T> List<T> executeQuery(StoredProcedureCall<T> storedProcedureCall) throws Exception {
+    protected <T> List<T> executeQuery(StoredProcedureCall<T> storedProcedureCall) throws DatabaseException {
         long startTime = System.currentTimeMillis();
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -104,17 +104,17 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            LOG.error(storedProcedureName + "_FAILURE");
+            LOGGER.error("{}_FAILURE", storedProcedureName);
             throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOG.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
+            LOGGER.info("SP_TIME|{}|{}", storedProcedureName, timeTaken);
         }
         return rows;
     }
 
-    protected int executeUpdate(StoredProcedureCall<Integer> storedProcedureCall) throws Exception {
+    protected int executeUpdate(StoredProcedureCall<Integer> storedProcedureCall) throws DatabaseException {
         long startTime = System.currentTimeMillis();
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -127,17 +127,17 @@ public abstract class Database {
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
-            LOG.error(storedProcedureName + "_FAILURE");
+            LOGGER.error("{}_FAILURE", storedProcedureName);
             throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOG.info(String.format("SP_TIME|%s|%d", storedProcedureName, timeTaken));
+            LOGGER.info("SP_TIME|{}|{}", storedProcedureName, timeTaken);
         }
         return affectedRows;
     }
 
-    protected <T> List<T> executeQuery(PSMaker psMaker, RowMapper<T> rowMapper) throws Exception {
+    protected <T> List<T> executeQuery(PSMaker psMaker, RowMapper<T> rowMapper) throws DatabaseException {
         long startTime = System.currentTimeMillis();
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -157,12 +157,12 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            LOG.error("RAW_QUERY_FAILURE");
+            LOGGER.error("RAW_QUERY_FAILURE");
             throw new DatabaseException(databaseConfig.databaseName, "RAW_QUERY", e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOG.info(String.format("RAW_QUERY|%d", timeTaken));
+            LOGGER.info("RAW_QUERY|{}", timeTaken);
         }
         return rows;
     }
@@ -171,17 +171,17 @@ public abstract class Database {
         if (resultSet != null) try {
             resultSet.close();
         } catch (Exception e) {
-            LOG.error("ERROR_IN_CLOSING_RESULT_SET", e);
+            LOGGER.warn("ERROR_IN_CLOSING_RESULT_SET", e);
         }
         if (statement != null) try {
             statement.close();
         } catch (Exception e) {
-            LOG.error("ERROR_IN_CLOSING_STATEMENT", e);
+            LOGGER.warn("ERROR_IN_CLOSING_STATEMENT", e);
         }
         if (connection != null) try {
             connection.close();
         } catch (Exception e) {
-            LOG.error("ERROR_IN_CLOSING_CONNECTION", e);
+            LOGGER.warn("ERROR_IN_CLOSING_CONNECTION", e);
         }
     }
 }
