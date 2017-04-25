@@ -1,5 +1,7 @@
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by sumeet
@@ -21,6 +23,14 @@ public class Util {
             }
         }
         return builder.toString();
+    }
+
+    public static List<String> repeat(String value, int count) {
+        List<String> returnList = new LinkedList<>();
+        for (int i = 0; i < count; i++) {
+            returnList.add(value);
+        }
+        return returnList;
     }
 }
 

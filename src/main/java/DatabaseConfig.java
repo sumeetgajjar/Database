@@ -6,6 +6,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
  */
 public class DatabaseConfig {
     public final String databaseName;
+    public final DatabaseType databaseType;
     public final String driver;
     public final String url;
     public final String user;
@@ -13,8 +14,9 @@ public class DatabaseConfig {
     public final boolean usePool;
     public final PoolProperties poolProperties;
 
-    public DatabaseConfig(String databaseName, String user, String password, String driver, String url, PoolProperties poolProperties) {
+    public DatabaseConfig(String databaseName, DatabaseType databaseType, String user, String password, String driver, String url, PoolProperties poolProperties) {
         this.databaseName = databaseName;
+        this.databaseType = databaseType;
         this.driver = driver;
         this.url = url;
         this.user = user;
@@ -23,7 +25,7 @@ public class DatabaseConfig {
         this.usePool = Util.isSet(poolProperties);
     }
 
-    public DatabaseConfig(String databaseName, String user, String password, String driver, String url) {
-        this(databaseName, user, password, driver, url, null);
+    public DatabaseConfig(String databaseName, DatabaseType databaseType, String user, String password, String driver, String url) {
+        this(databaseName, databaseType, user, password, driver, url, null);
     }
 }

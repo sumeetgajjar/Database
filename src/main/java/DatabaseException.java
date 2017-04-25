@@ -4,17 +4,17 @@
  */
 public class DatabaseException extends Exception {
 
-    private final String databaseName;
+    private final DatabaseConfig databaseConfig;
     private final String query;
 
-    public DatabaseException(String databaseName, String query, Throwable cause) {
+    public DatabaseException(DatabaseConfig databaseConfig, String query, Throwable cause) {
         super(cause);
-        this.databaseName = databaseName;
+        this.databaseConfig = databaseConfig;
         this.query = query;
     }
 
-    public String getDatabaseName() {
-        return databaseName;
+    public DatabaseConfig getDatabaseConfig() {
+        return databaseConfig;
     }
 
     public String getQuery() {

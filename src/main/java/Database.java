@@ -1,5 +1,4 @@
 import org.apache.tomcat.jdbc.pool.DataSource;
-import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by sumeet
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 public abstract class Database {
     private final DatabaseConfig databaseConfig;
 
-    private final static Map<String, DataSource> dataSourceMap = new HashMap<>();
+    private final static Map<String, DataSource> DATA_SOURCE_MAP = new HashMap<>();
     private final static Logger LOGGER = LoggerFactory.getLogger(Database.class);
 
     public Database(DatabaseConfig databaseConfig) {
@@ -28,23 +26,28 @@ public abstract class Database {
             databaseConfig.poolProperties.setDriverClassName(databaseConfig.driver);
             databaseConfig.poolProperties.setUsername(databaseConfig.user);
             databaseConfig.poolProperties.setPassword(databaseConfig.password);
-            instantiatePool(databaseConfig.poolProperties);
+            instantiatePool();
         }
     }
 
-    private void instantiatePool(PoolProperties poolProperties) {
-        DataSource dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
+    private void instantiatePool() {
+        String poolMapKey = getDataSourcePoolMapKey();
+        DataSource dataSource = DATA_SOURCE_MAP.getOrDefault(poolMapKey, null);
         if (dataSource == null) {
             synchronized (Database.class) {
-                dataSource = dataSourceMap.getOrDefault(databaseConfig.databaseName, null);
+                dataSource = DATA_SOURCE_MAP.getOrDefault(poolMapKey, null);
                 if (dataSource == null) {
-                    LOGGER.info("INITIALIZING_DATASOURCE|{}", databaseConfig.databaseName);
-                    dataSource = new DataSource(poolProperties);
-                    LOGGER.info("DATASOURCE_INITIALIZED|{}", databaseConfig.databaseName);
-                    dataSourceMap.put(databaseConfig.databaseName, dataSource);
+                    LOGGER.info(getLogPrefix() + "INITIALIZING_DATASOURCE|{}", poolMapKey);
+                    dataSource = new DataSource(databaseConfig.poolProperties);
+                    LOGGER.info(getLogPrefix() + "DATASOURCE_INITIALIZED|{}", poolMapKey);
+                    DATA_SOURCE_MAP.put(poolMapKey, dataSource);
                 }
             }
         }
+    }
+
+    private String getDataSourcePoolMapKey() {
+        return databaseConfig.databaseType + "|" + databaseConfig.databaseName;
     }
 
     private Connection getSingleDirectConnection() throws ClassNotFoundException, SQLException {
@@ -55,25 +58,22 @@ public abstract class Database {
     protected Connection getConnection() throws Exception {
         long startTime = System.currentTimeMillis();
         Connection connection;
+        String poolMapKey = getDataSourcePoolMapKey();
         if (databaseConfig.usePool) {
-            connection = dataSourceMap.get(databaseConfig.databaseName).getConnection();
+            connection = DATA_SOURCE_MAP.get(poolMapKey).getConnection();
         } else {
             connection = getSingleDirectConnection();
         }
         long timeTaken = System.currentTimeMillis() - startTime;
-        LOGGER.info("DB_CONNECT_TIME|{}|{}", databaseConfig.databaseName, timeTaken);
+        LOGGER.info(getLogPrefix() + "DB_CONNECT_TIME|{}|{}", poolMapKey, timeTaken);
         return connection;
     }
 
-    protected String getProcedureCallString(String storedProcedureName, List<Parameter> parameters) {
-        List<String> paramList = parameters.stream().map(parameter -> parameter.getName() + " := ?").collect(Collectors.toList());
-        String parameterPlaceHolders = Util.implode(",", paramList);
-        String procedureCallString = String.format("{call %s (%s) }", storedProcedureName, parameterPlaceHolders);
-        return procedureCallString;
-    }
-
     protected PreparedStatement getPreparedStatement(Connection connection, String storedProcedureName, List<Parameter> parameters) throws Exception {
-        PreparedStatement preparedStatement = connection.prepareStatement(getProcedureCallString(storedProcedureName, parameters));
+        String procedureCallString = databaseConfig.databaseType.getProcedureCallString(storedProcedureName, parameters);
+        LOGGER.debug(getLogPrefix() + "SP_CALL_STRING|{}", procedureCallString);
+
+        PreparedStatement preparedStatement = connection.prepareStatement(procedureCallString);
         preparedStatement.setEscapeProcessing(true);
         int index = 0;
         for (Parameter parameter : parameters) {
@@ -104,17 +104,17 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            LOGGER.error("{}_FAILURE", storedProcedureName);
-            throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
+            LOGGER.error(getLogPrefix() + "{}_FAILURE|{}", storedProcedureName, e.getMessage());
+            throw new DatabaseException(databaseConfig, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOGGER.info("SP_TIME|{}|{}", storedProcedureName, timeTaken);
+            LOGGER.info(getLogPrefix() + "SP_TIME|{}|{}", storedProcedureName, timeTaken);
         }
         return rows;
     }
 
-    protected int executeUpdate(StoredProcedureCall<Integer> storedProcedureCall) throws DatabaseException {
+    protected <T> int executeUpdate(StoredProcedureCall<T> storedProcedureCall) throws DatabaseException {
         long startTime = System.currentTimeMillis();
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -127,12 +127,12 @@ public abstract class Database {
             affectedRows = preparedStatement.executeUpdate();
 
         } catch (Exception e) {
-            LOGGER.error("{}_FAILURE", storedProcedureName);
-            throw new DatabaseException(databaseConfig.databaseName, storedProcedureName, e);
+            LOGGER.error(getLogPrefix() + "{}_FAILURE", storedProcedureName);
+            throw new DatabaseException(databaseConfig, storedProcedureName, e);
         } finally {
             closeDatabaseConnection(null, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOGGER.info("SP_TIME|{}|{}", storedProcedureName, timeTaken);
+            LOGGER.info(getLogPrefix() + "SP_TIME|{}|{}", storedProcedureName, timeTaken);
         }
         return affectedRows;
     }
@@ -157,12 +157,12 @@ public abstract class Database {
             }
 
         } catch (Exception e) {
-            LOGGER.error("RAW_QUERY_FAILURE");
-            throw new DatabaseException(databaseConfig.databaseName, "RAW_QUERY", e);
+            LOGGER.error(getLogPrefix() + "RAW_QUERY_FAILURE");
+            throw new DatabaseException(databaseConfig, "RAW_QUERY", e);
         } finally {
             closeDatabaseConnection(resultSet, preparedStatement, connection);
             long timeTaken = System.currentTimeMillis() - startTime;
-            LOGGER.info("RAW_QUERY|{}", timeTaken);
+            LOGGER.info(getLogPrefix() + "RAW_QUERY|{}", timeTaken);
         }
         return rows;
     }
@@ -171,18 +171,22 @@ public abstract class Database {
         if (resultSet != null) try {
             resultSet.close();
         } catch (Exception e) {
-            LOGGER.warn("ERROR_IN_CLOSING_RESULT_SET", e);
+            LOGGER.warn(getLogPrefix() + "ERROR_IN_CLOSING_RESULT_SET", e);
         }
         if (statement != null) try {
             statement.close();
         } catch (Exception e) {
-            LOGGER.warn("ERROR_IN_CLOSING_STATEMENT", e);
+            LOGGER.warn(getLogPrefix() + "ERROR_IN_CLOSING_STATEMENT", e);
         }
         if (connection != null) try {
             connection.close();
         } catch (Exception e) {
-            LOGGER.warn("ERROR_IN_CLOSING_CONNECTION", e);
+            LOGGER.warn(getLogPrefix() + "ERROR_IN_CLOSING_CONNECTION", e);
         }
+    }
+
+    protected String getLogPrefix() {
+        return "";
     }
 }
 
