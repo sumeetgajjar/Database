@@ -10,12 +10,12 @@ Time taken for establishing DB connection as well as for executing the query is 
 #### Create DatabaseConfig
 * For Single Connection
 ```java
-DatabaseConfig MSSQL_DATABASE_CONFIG = new DatabaseConfig("KEYWORD_MASTER", 
+DatabaseConfig MSSQL_DATABASE_CONFIG = new DatabaseConfig("TEST_MASTER", 
                                                         DatabaseTypeImpl.MSSQL, 
-                                                        "skenzo_dev", 
-                                                        "Skenzo_Dev", 
+                                                        "test_user", 
+                                                        "test_password", 
                                                         "net.sourceforge.jtds.jdbc.Driver", 
-                                                        "jdbc:jtds:sqlserver://172.19.19.19;databaseName=KEYWORD_MASTER");
+                                                        "jdbc:jtds:sqlserver://localhost;databaseName=TEST_MASTER");
 ```
 
 * For Pooled Connections 
@@ -25,12 +25,12 @@ PoolProperties POOL_PROPERTIES = new PoolProperties() {{
         setTestOnBorrow(true);
         setTestOnReturn(true);
     }};
-DatabaseConfig MSSQL_POOLED_DATABASE_CONFIG = new DatabaseConfig("KEYWORD_MASTER", 
+DatabaseConfig MSSQL_POOLED_DATABASE_CONFIG = new DatabaseConfig("TEST_MASTER", 
                                                         DatabaseTypeImpl.MSSQL, 
-                                                        "skenzo_dev", 
-                                                        "Skenzo_Dev", 
+                                                        "test_user", 
+                                                        "test_password", 
                                                         "net.sourceforge.jtds.jdbc.Driver", 
-                                                        "jdbc:jtds:sqlserver://172.19.19.19;databaseName=KEYWORD_MASTER", 
+                                                        "jdbc:jtds:sqlserver://localhost;databaseName=TEST_MASTER", 
                                                         POOL_PROPERTIES);
 ```
 
