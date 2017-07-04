@@ -10,7 +10,8 @@ public enum DatabaseTypeImpl implements DatabaseType {
     MSSQL {
         @Override
         public String getProcedureCallString(String storedProcedureName, List<Parameter> parameters) {
-            String parameterPlaceHolders = Util.implode(",", Util.repeat("?", parameters.size()));
+            List<String> paramList = parameters.stream().map(parameter -> parameter.getName() + " = ?").collect(Collectors.toList());
+            String parameterPlaceHolders = Util.implode(",", paramList);
             String procedureCallString = String.format("{call %s (%s) }", storedProcedureName, parameterPlaceHolders);
             return procedureCallString;
         }
